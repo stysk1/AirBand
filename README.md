@@ -16,7 +16,8 @@
 
 ### Useful Links:
 
-- [Myo Connect Download](https://drive.google.com/file/d/1Z41JeAPAQwa57O41nb4_a2Ps3fxQU3MA/view)
+- [Myo Connect Download - Windows](https://drive.google.com/file/d/1Z41JeAPAQwa57O41nb4_a2Ps3fxQU3MA/view)
+- [Myo Connect Download - Mac](https://drive.google.com/open?id=1mbA6V0xOycXhOzLOsqA97mJdOj_aZ5zk)
 - [GitHub Markdown Tutorial](https://guides.github.com/features/mastering-markdown/)
 - [Myo Support Page](https://support.getmyo.com/hc/en-us/categories/200376195-Myo-101)
 - [C++ Resources](https://www.tutorialspoint.com/cplusplus/)
