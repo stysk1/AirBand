@@ -10,7 +10,6 @@
 #include <conio.h>
 #include <Windows.h>
 #include <mmsystem.h>
-#include "bass.h"
 
 // The only file that needs to be included to use the Myo C++ SDK is myo.hpp.
 #include <myo/myo.hpp>
@@ -25,8 +24,6 @@ public:
     {
     }
 	int prevRoll = 0, prevPitch = 0, prevYaw = 0, amtOfHits = 0; float accelX = 0, accelY = 0, accelZ = 0, accelMagnitude = 0; std::vector< float > gyroValues = {};
-	int device = -1; // Default Sound device
-	int freq = 44100; // Sample rate (Hz)
     // onUnpair() is called whenever the Myo is disconnected from Myo Connect by the user.
     void onUnpair(myo::Myo* myo, uint64_t timestamp)
     {
@@ -65,8 +62,8 @@ public:
 
     }
 
-	// onAccelerometerData is called whenever new accelerometer data is provided
-	// Be warned: This will not make any distinction between data from other Myo armbands
+	// onAccelerometerData is called whenever new acceleromenter data is provided
+	// Be warned: This will not make any distiction between data from other Myo armbands
 	void onAccelerometerData(myo::Myo *myo, uint64_t timestamp, const myo::Vector3< float > &accel) {
 
 		accelX = accel.x();
@@ -171,12 +168,6 @@ public:
 		std::string ext = "_1.wav";
 		std::string concat = file + tone + ext;
 		LPCSTR sound = concat.c_str();
-		
-		HSTREAM streamHandle; // Handle for open stream
-		/* Initialize output device */
-		BASS_Init(device, freq, 0, 0, NULL);
-		/* Load randomized sound file */
-		streamHandle = BASS_StreamCreateFile(FALSE, sound, 0, 0, 0);
 
 		/*std::cout << sound;
 		std::cout << '[' << roll_w << ']'
@@ -190,10 +181,9 @@ public:
 			//std::cout << "Array Size: " << gyroValues.size() << ' ' << "Values: " << ' ';
 			/*for (int i = 0; i < gyroValues.size(); ++i)
 				std::cout << gyroValues[i] << ' ';*/
-		if (/*(prevPitch - pitch_w >= 2) && *//*(getStandardDev() >= 0.85) && */(accelX >= 1.5)) {
+		if (/*(prevPitch - pitch_w >= 2) && *//*(getStandardDev() >= 0.85) && */(accelX >= 1.0)) {
 			amtOfHits += 1;
-			//PlaySound(sound, NULL, SND_ASYNC | SND_FILENAME);
-			BASS_ChannelPlay(streamHandle, FALSE);
+			PlaySound(sound, NULL, SND_ASYNC | SND_FILENAME);
 		}
 		if (gyroValues.size() >= 60) {
 			gyroValues = {};
@@ -266,14 +256,12 @@ int main(int argc, char** argv)
     while (1) {
         // In each iteration of our main loop, we run the Myo event loop for a set number of milliseconds.
         // In this case, we wish to update our display 60 times a second, so we run for 1000/60 milliseconds.
-		hub.run(1000 / 20);
+		hub.run(1000 / 60);
         // After processing events, we call the print() member function we defined above to print out the values we've
         // obtained from any events that have occurred.
 		collector.print();
+		
     }
-
-	/* As very last, close Bass */
-	BASS_Free();
 
     // If a standard exception occurred, we print out its message and exit.
     } catch (const std::exception& e) {

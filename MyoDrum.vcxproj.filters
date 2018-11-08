@@ -59,5 +59,8 @@
     <ClInclude Include="include\myo\libmyo\detail\visibility.h">
       <Filter>Header Files</Filter>
     </ClInclude>
+    <ClInclude Include="include\bass.h">
+      <Filter>Header Files</Filter>
+    </ClInclude>
   </ItemGroup>
 </Project>
