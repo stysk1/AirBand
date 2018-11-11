@@ -85,15 +85,15 @@ public:
         if (pose != myo::Pose::unknown && pose != myo::Pose::rest) {
             // Tell the Myo to stay unlocked until told otherwise. We do that here so you can hold the poses without the
             // Myo becoming locked.
-            myo->unlock(myo::Myo::unlockHold);
+            //myo->unlock(myo::Myo::unlockHold);
 
             // Notify the Myo that the pose has resulted in an action, in this case changing
             // the text on the screen. The Myo will vibrate.
-            myo->notifyUserAction();
+            //myo->notifyUserAction();
         } else {
             // Tell the Myo to stay unlocked only for a short period. This allows the Myo to stay unlocked while poses
             // are being performed, but lock after inactivity.
-            myo->unlock(myo::Myo::unlockTimed);
+            //myo->unlock(myo::Myo::unlockTimed);
         }
     }
 
@@ -157,7 +157,7 @@ public:
     void print()
     {
 		// Clear the current line
-		//std::cout << '\r';
+		std::cout << '\r';
 
 		// Print out the orientation. Orientation data is always available, even if no arm is currently recognized.
 		/*std::cout << '[' << std::string(roll_w, '*') << std::string(18 - roll_w, ' ') << ']'
@@ -173,10 +173,8 @@ public:
 		LPCSTR sound = concat.c_str();
 		
 		HSTREAM streamHandle; // Handle for open stream
-		/* Initialize output device */
-		BASS_Init(device, freq, 0, 0, NULL);
-		/* Load randomized sound file */
-		streamHandle = BASS_StreamCreateFile(FALSE, sound, 0, 0, 0);
+		BASS_Init(device, freq, 0, 0, NULL); //Initialize output device
+		streamHandle = BASS_StreamCreateFile(FALSE, sound, 0, 0, 0); //Load randomized sound file
 
 		/*std::cout << sound;
 		std::cout << '[' << roll_w << ']'
@@ -186,16 +184,22 @@ public:
 		std::cout << '[' << accelX << ']'
 			<< '[' << accelY << ']'
 			<< '[' << accelZ << ']'
-			<< '[' << accelMagnitude << ']';*/
+			<< '[' << accelMagnitude << ']';
 			//std::cout << "Array Size: " << gyroValues.size() << ' ' << "Values: " << ' ';
 			/*for (int i = 0; i < gyroValues.size(); ++i)
 				std::cout << gyroValues[i] << ' ';*/
-		if (/*(prevPitch - pitch_w >= 2) && *//*(getStandardDev() >= 0.85) && */(accelX >= 1.5)) {
+		//if (/*(prevPitch - pitch_w >= 2) && *//*(getStandardDev() >= 0.85) && */(accelX >= 1)) {
+
+
+		/*  More accurate hit movement but still sometimes double hits.
+		 *  TODO: Check out gyroscope/accelerometer/EMG values when using wrist movements
+		 */
+		if(accelX >= 1.8 && pitch_w <= 4){ 
 			amtOfHits += 1;
-			//PlaySound(sound, NULL, SND_ASYNC | SND_FILENAME);
+			std::cout << gyroValues.size() << '\n';
 			BASS_ChannelPlay(streamHandle, FALSE);
 		}
-		if (gyroValues.size() >= 60) {
+		if (gyroValues.size() >= 60) { //Reset the array of gyroscope values once there are 60 values. TODO
 			gyroValues = {};
 		}
 
