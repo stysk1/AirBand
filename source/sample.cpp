@@ -7,10 +7,10 @@
 #include <stdexcept>
 #include <string>
 #include <algorithm>
-#include <conio.h>
-#include <Windows.h>
-#include <mmsystem.h>
-#include "bass.h"
+//#include <conio.h>
+//#include <Windows.h>
+//#include <mmsystem.h>
+#include "../include/bass.h"
 
 // The only file that needs to be included to use the Myo C++ SDK is myo.hpp.
 #include <myo/myo.hpp>
@@ -170,11 +170,11 @@ public:
 		std::string file = "sounds/Snare Hard ";
 		std::string ext = "_1.wav";
 		std::string concat = file + tone + ext;
-		LPCSTR sound = concat.c_str();
+        std::string sound = concat.c_str();
 		
 		HSTREAM streamHandle; // Handle for open stream
 		BASS_Init(device, freq, 0, 0, NULL); //Initialize output device
-		streamHandle = BASS_StreamCreateFile(FALSE, sound, 0, 0, 0); //Load randomized sound file
+        streamHandle = BASS_StreamCreateFile(FALSE, &sound, 0, 0, 0); //Load randomized sound file
 
 		/*std::cout << sound;
 		std::cout << '[' << roll_w << ']'
