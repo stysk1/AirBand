@@ -3,16 +3,20 @@
 
 ### Milestones:
 **Milestone #1**:
-- [ ] Connect both Myo Armbands simultaneously
-- [ ] Create new 'drum' gesture
-- [ ] Devise a way to make sounds (library or import mp3s)
+- [x] Connect both Myo Armbands simultaneously
+- [x] Create new 'drum' gesture (using acceleration)
+- [x] Devise a way to make sounds (BASS library with .wav samples)
+- [x] Play overlapping drum sounds
 
 **Milestone #2**:
-- [ ] Add ability to create and save recordings
 - [ ] Add different pallettes of sounds
 - [ ] Look into using moving arms around in a space for playing different drums
+- [ ] Remove flamming from detecting multiple points at acceleration value
 
 **Final Code**:
+
+**Nice to Have's**:
+- [ ] Add ability to create and save recordings
 
 ### Useful Links:
 
