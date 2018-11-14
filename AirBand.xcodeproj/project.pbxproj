@@ -10,17 +10,22 @@
 		8FA44C40219CD5D6007F37C0 /* sample.cpp in Sources */ = {isa = PBXBuildFile; fileRef = 8FA44C3F219CD5D6007F37C0 /* sample.cpp */; };
 		8FA44C43219CD5DF007F37C0 /* libbass.dylib in Frameworks */ = {isa = PBXBuildFile; fileRef = 8FA44C42219CD5DF007F37C0 /* libbass.dylib */; };
 		8FA44C45219CD5E6007F37C0 /* myo.framework in Frameworks */ = {isa = PBXBuildFile; fileRef = 8FA44C44219CD5E6007F37C0 /* myo.framework */; };
+		8FA44C46219CD969007F37C0 /* myo.framework in CopyFiles */ = {isa = PBXBuildFile; fileRef = 8FA44C44219CD5E6007F37C0 /* myo.framework */; settings = {ATTRIBUTES = (RemoveHeadersOnCopy, ); }; };
+		8FA44C47219CD96B007F37C0 /* libbass.dylib in CopyFiles */ = {isa = PBXBuildFile; fileRef = 8FA44C42219CD5DF007F37C0 /* libbass.dylib */; };
+		8FA44C49219CD98E007F37C0 /* Carbon.framework in Frameworks */ = {isa = PBXBuildFile; fileRef = 8FA44C48219CD98E007F37C0 /* Carbon.framework */; };
 /* End PBXBuildFile section */
 
 /* Begin PBXCopyFilesBuildPhase section */
 		8FA44C2C219CD48D007F37C0 /* CopyFiles */ = {
 			isa = PBXCopyFilesBuildPhase;
-			buildActionMask = 2147483647;
-			dstPath = /usr/share/man/man1/;
-			dstSubfolderSpec = 0;
+			buildActionMask = 12;
+			dstPath = "";
+			dstSubfolderSpec = 16;
 			files = (
+				8FA44C47219CD96B007F37C0 /* libbass.dylib in CopyFiles */,
+				8FA44C46219CD969007F37C0 /* myo.framework in CopyFiles */,
 			);
-			runOnlyForDeploymentPostprocessing = 1;
+			runOnlyForDeploymentPostprocessing = 0;
 		};
 /* End PBXCopyFilesBuildPhase section */
 
@@ -36,6 +41,7 @@
 		8FA44C3F219CD5D6007F37C0 /* sample.cpp */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.cpp.cpp; name = sample.cpp; path = source/sample.cpp; sourceTree = "<group>"; };
 		8FA44C42219CD5DF007F37C0 /* libbass.dylib */ = {isa = PBXFileReference; lastKnownFileType = "compiled.mach-o.dylib"; name = libbass.dylib; path = lib/libbass.dylib; sourceTree = "<group>"; };
 		8FA44C44219CD5E6007F37C0 /* myo.framework */ = {isa = PBXFileReference; lastKnownFileType = wrapper.framework; name = myo.framework; path = lib/myo.framework; sourceTree = "<group>"; };
+		8FA44C48219CD98E007F37C0 /* Carbon.framework */ = {isa = PBXFileReference; lastKnownFileType = wrapper.framework; name = Carbon.framework; path = System/Library/Frameworks/Carbon.framework; sourceTree = SDKROOT; };
 /* End PBXFileReference section */
 
 /* Begin PBXFrameworksBuildPhase section */
@@ -43,6 +49,7 @@
 			isa = PBXFrameworksBuildPhase;
 			buildActionMask = 2147483647;
 			files = (
+				8FA44C49219CD98E007F37C0 /* Carbon.framework in Frameworks */,
 				8FA44C45219CD5E6007F37C0 /* myo.framework in Frameworks */,
 				8FA44C43219CD5DF007F37C0 /* libbass.dylib in Frameworks */,
 			);
@@ -78,6 +85,7 @@
 		8FA44C41219CD5DF007F37C0 /* Frameworks */ = {
 			isa = PBXGroup;
 			children = (
+				8FA44C48219CD98E007F37C0 /* Carbon.framework */,
 				8FA44C44219CD5E6007F37C0 /* myo.framework */,
 				8FA44C42219CD5DF007F37C0 /* libbass.dylib */,
 			);

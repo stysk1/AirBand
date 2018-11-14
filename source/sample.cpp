@@ -13,7 +13,7 @@
 #include "../include/bass.h"
 
 // The only file that needs to be included to use the Myo C++ SDK is myo.hpp.
-#include <myo/myo.hpp>
+#include "../include/myo/myo.hpp"
 
 // Classes that inherit from myo::DeviceListener can be used to receive events from Myo devices. DeviceListener
 // provides several virtual functions for handling different kinds of events. If you do not override an event, the

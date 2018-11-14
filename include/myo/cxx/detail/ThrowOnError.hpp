@@ -5,7 +5,7 @@
 
 #include <stdexcept>
 
-#include <myo/libmyo.h>
+#include "../../libmyo.h"
 
 #if defined(_MSC_VER) && _MSC_VER <= 1800
 #define LIBMYO_NOEXCEPT(b)
