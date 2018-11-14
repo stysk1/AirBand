@@ -170,13 +170,13 @@ public:
 		std::string file = "sounds/Snare Hard ";
 		std::string ext = "_1.wav";
 		std::string concat = file + tone + ext;
-        std::string sound = concat.c_str();
+        const char* sound = concat.c_str();
 		
 		HSTREAM streamHandle; // Handle for open stream
 		BASS_Init(device, freq, 0, 0, NULL); //Initialize output device
-        streamHandle = BASS_StreamCreateFile(FALSE, &sound, 0, 0, 0); //Load randomized sound file
+        streamHandle = BASS_StreamCreateFile(FALSE, sound, 0, 0, 0); //Load randomized sound file
 
-		/*std::cout << sound;
+		std::cout << sound;
 		std::cout << '[' << roll_w << ']'
 			<< '[' << pitch_w << ']'
 			<< '[' << yaw_w << ']'
@@ -194,10 +194,10 @@ public:
 		/*  More accurate hit movement but still sometimes double hits.
 		 *  TODO: Check out gyroscope/accelerometer/EMG values when using wrist movements
 		 */
-		if(accelX >= 1.8 && pitch_w <= 4){ 
+		if(accelX >= 1.8){
 			amtOfHits += 1;
-			std::cout << gyroValues.size() << '\n';
-			BASS_ChannelPlay(streamHandle, FALSE);
+            BASS_ChannelPlay(streamHandle, FALSE);
+			//std::cout << gyroValues.size() << '\n';
 		}
 		if (gyroValues.size() >= 60) { //Reset the array of gyroscope values once there are 60 values. TODO
 			gyroValues = {};
