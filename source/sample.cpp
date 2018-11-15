@@ -24,7 +24,7 @@ public:
     : onArm(false), isUnlocked(false), roll_w(0), pitch_w(0), yaw_w(0), currentPose()
     {
     }
-	int prevRoll = 0, prevPitch = 0, prevYaw = 0, amtOfHits = 0; float accelX = 0, accelY = 0, accelZ = 0, accelMagnitude = 0; std::vector< float > gyroValues = {};
+	int prevRoll = 0, prevPitch = 0, prevYaw = 0, amtOfHits = 0; float accelX = 0, accelY = 0, accelZ = 0, accelMagnitude = 0, prevAccelX = 0; std::vector< float > gyroValues = {};
 	int device = -1; // Default Sound device
 	int freq = 44100; // Sample rate (Hz)
     // onUnpair() is called whenever the Myo is disconnected from Myo Connect by the user.
@@ -167,14 +167,37 @@ public:
 
 		float deviation = 0;
 		std::string tone = std::to_string(rand() % 4 + 1);
-		std::string file = "sounds/Snare Hard ";
+		std::string soft = "sounds/Snare Soft ";
+		std::string med = "sounds/Snare Med ";
+		std::string hard = "sounds/Snare Hard ";
+		std::string hardest = "sounds/Snare Hardest ";
 		std::string ext = "_1.wav";
-		std::string concat = file + tone + ext;
-		LPCSTR sound = concat.c_str();
-		
+		std::string concatSoft = soft + tone + ext;
+		std::string concatMed = med + tone + ext;
+		std::string concatHard = hard + tone + ext;
+		std::string concatHardest = hardest + tone + ext;
+		LPCSTR soundSoft = concatSoft.c_str();
+		LPCSTR soundMed = concatMed.c_str();
+		LPCSTR soundHard = concatHard.c_str();
+		LPCSTR soundHardest = concatHardest.c_str();
+
 		HSTREAM streamHandle; // Handle for open stream
 		BASS_Init(device, freq, 0, 0, NULL); //Initialize output device
-		streamHandle = BASS_StreamCreateFile(FALSE, sound, 0, 0, 0); //Load randomized sound file
+
+		if (accelX >= 0.8 && accelX < 1.3) {
+			streamHandle = BASS_StreamCreateFile(FALSE, soundSoft, 0, 0, 0); //Load randomized sound file
+		}
+		else if (accelX >= 1.3 && accelX < 1.8) {
+			streamHandle = BASS_StreamCreateFile(FALSE, soundMed, 0, 0, 0); //Load randomized sound file
+		}
+		else if (accelX >= 1.8 && accelX < 2.3) {
+			streamHandle = BASS_StreamCreateFile(FALSE, soundHard, 0, 0, 0); //Load randomized sound file
+		}
+		else if (accelX >= 2.3) {
+			streamHandle = BASS_StreamCreateFile(FALSE, soundHardest, 0, 0, 0); //Load randomized sound file
+		}
+		
+		
 
 		/*std::cout << sound;
 		std::cout << '[' << roll_w << ']'
@@ -194,9 +217,9 @@ public:
 		/*  More accurate hit movement but still sometimes double hits.
 		 *  TODO: Check out gyroscope/accelerometer/EMG values when using wrist movements
 		 */
-		if(accelX >= 1.8 && pitch_w <= 4){ 
+		if(accelX >= 0.8/* && pitch_w <= 4*/){ 
 			amtOfHits += 1;
-			std::cout << gyroValues.size() << '\n';
+			//std::cout << gyroValues.size() << '\n';
 			BASS_ChannelPlay(streamHandle, FALSE);
 		}
 		if (gyroValues.size() >= 60) { //Reset the array of gyroscope values once there are 60 values. TODO
@@ -219,6 +242,7 @@ public:
 			std::cout << '[' << std::string(8, ' ') << ']' << "[?]" << '[' << std::string(14, ' ') << ']';
 		}*/
 		prevPitch = pitch_w;
+		prevAccelX = accelX;
 		std::cout << std::flush;
     }
 
