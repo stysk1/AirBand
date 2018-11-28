@@ -3,13 +3,13 @@
 #define _USE_MATH_DEFINES
 #include <cmath>
 #include <iostream>
+#include <thread>
+#include <chrono>
 #include <iomanip>
 #include <stdexcept>
 #include <string>
 #include <algorithm>
 #include <conio.h>
-#include <Windows.h>
-#include <mmsystem.h>
 #include "bass.h"
 
 // The only file that needs to be included to use the Myo C++ SDK is myo.hpp.
@@ -24,7 +24,7 @@ public:
     : onArm(false), isUnlocked(false), roll_w(0), pitch_w(0), yaw_w(0), currentPose()
     {
     }
-	int prevRoll = 0, prevPitch = 0, prevYaw = 0, amtOfHits = 0; float accelX = 0, accelY = 0, accelZ = 0, accelMagnitude = 0, prevAccelX = 0; std::vector< float > gyroValues = {};
+	int prevRoll = 0, prevPitch = 0, prevYaw = 0;
 	int device = -1; // Default Sound device
 	int freq = 44100; // Sample rate (Hz)
     // onUnpair() is called whenever the Myo is disconnected from Myo Connect by the user.
@@ -41,6 +41,12 @@ public:
 
     // onOrientationData() is called whenever the Myo device provides its current orientation, which is represented
     // as a unit quaternion.
+	void onGyroscopeData(myo::Myo* myo, uint64_t timestamp, const myo::Vector3<float>& gyro)
+	{
+		gyroX = gyro.x();
+		gyroY = gyro.y();
+		gyroZ = gyro.z();
+	}
     void onOrientationData(myo::Myo* myo, uint64_t timestamp, const myo::Quaternion<float>& quat)
     {
         using std::atan2;
@@ -48,7 +54,7 @@ public:
         using std::sqrt;
         using std::max;
         using std::min;
-
+		
         // Calculate Euler angles (roll, pitch, and yaw) from the unit quaternion.
         float roll = atan2(2.0f * (quat.w() * quat.x() + quat.y() * quat.z()),
                            1.0f - 2.0f * (quat.x() * quat.x() + quat.y() * quat.y())); //twisting arm
@@ -60,21 +66,7 @@ public:
         roll_w = static_cast<int>((roll + (float)M_PI)/(M_PI * 2.0f) * 18);
         pitch_w = static_cast<int>((pitch + (float)M_PI/2.0f)/M_PI * 18);
         yaw_w = static_cast<int>((yaw + (float)M_PI)/(M_PI * 2.0f) * 18);
-
-		gyroValues.push_back(pitch_w);
-
     }
-
-	// onAccelerometerData is called whenever new accelerometer data is provided
-	// Be warned: This will not make any distinction between data from other Myo armbands
-	void onAccelerometerData(myo::Myo *myo, uint64_t timestamp, const myo::Vector3< float > &accel) {
-
-		accelX = accel.x();
-		accelY = accel.y();
-		accelZ = accel.z();
-		accelMagnitude = accel.magnitude();
-
-	}
 
     // onPose() is called whenever the Myo detects that the person wearing it has changed their pose, for example,
     // making a fist, or not making a fist anymore.
@@ -126,28 +118,21 @@ public:
         isUnlocked = false;
     }
 
-	float getStandardDev() {
-		float variance = 0;
-		float standard_dev = 0;
-		float mean = getMean();
-		for (int n = 0; n < gyroValues.size(); n++)
-		{
-			variance += (gyroValues[n] - mean) * (gyroValues[n] - mean);
-		}
-		variance /= gyroValues.size();
-		standard_dev = sqrt(variance);
-
-		return standard_dev;
+	std::string pickSound(std::string volume) {
+		std::string tone = std::to_string(rand() % 4 + 1);
+		std::string location = "sounds/";
+		std::string extension = ".wav";
+		std::string concat = location + volume + " " + tone + extension;
+		return concat;
 	}
 
-	float getMean() {
-		float mean = 0;
-		float sum = 0;
-		for (int i = 0; i < gyroValues.size(); i++) {
-			sum += gyroValues[i];
-		}
-		mean = sum / gyroValues.size();
-		return mean;
+	void playLeft(HSTREAM stream) {
+		BASS_ChannelPlay(stream, FALSE);
+		std::this_thread::sleep_for(std::chrono::milliseconds(1000 / 10));
+	}
+	void playRight(HSTREAM stream) {
+		BASS_ChannelPlay(stream, FALSE);
+		std::this_thread::sleep_for(std::chrono::milliseconds(1000 / 10));
 	}
 
     // There are other virtual functions in DeviceListener that we could override here, like onAccelerometerData().
@@ -157,57 +142,59 @@ public:
     void print()
     {
 		// Clear the current line
-		std::cout << '\r';
+		//std::cout << '\r';
 
-		// Print out the orientation. Orientation data is always available, even if no arm is currently recognized.
-		/*std::cout << '[' << std::string(roll_w, '*') << std::string(18 - roll_w, ' ') << ']'
-				  << '[' << std::string(pitch_w, '*') << std::string(18 - pitch_w, ' ') << ']'
-				  << '[' << std::string(yaw_w, '*') << std::string(18 - yaw_w, ' ') << ']';*/
-
-
-		float deviation = 0;
-		std::string tone = std::to_string(rand() % 4 + 1);
-		std::string soft = "sounds/Snare Soft ";
-		std::string med = "sounds/Snare Med ";
-		std::string hard = "sounds/Snare Hard ";
-		std::string hardest = "sounds/Snare Hardest ";
-		std::string ext = "_1.wav";
-		std::string concatSoft = soft + tone + ext;
-		std::string concatMed = med + tone + ext;
-		std::string concatHard = hard + tone + ext;
-		std::string concatHardest = hardest + tone + ext;
-		LPCSTR soundSoft = concatSoft.c_str();
-		LPCSTR soundMed = concatMed.c_str();
-		LPCSTR soundHard = concatHard.c_str();
-		LPCSTR soundHardest = concatHardest.c_str();
-
+		std::string temp = "";
+		const char* sound;
+	
 		HSTREAM streamHandle; // Handle for open stream
 		BASS_Init(device, freq, 0, 0, NULL); //Initialize output device
-
-		if (accelX >= 0.8 && accelX < 1.3) {
-			streamHandle = BASS_StreamCreateFile(FALSE, soundSoft, 0, 0, 0); //Load randomized sound file
-		}
-		else if (accelX >= 1.3 && accelX < 1.8) {
-			streamHandle = BASS_StreamCreateFile(FALSE, soundMed, 0, 0, 0); //Load randomized sound file
-		}
-		else if (accelX >= 1.8 && accelX < 2.3) {
-			streamHandle = BASS_StreamCreateFile(FALSE, soundHard, 0, 0, 0); //Load randomized sound file
-		}
-		else if (accelX >= 2.3) {
-			streamHandle = BASS_StreamCreateFile(FALSE, soundHardest, 0, 0, 0); //Load randomized sound file
-		}
 		
+// 		if (accelX >= 1.0 && accelX < 1.3) {
+// 			temp = pickSound("Snare Soft"); sound = temp.c_str();
+// 			streamHandle = BASS_StreamCreateFile(FALSE, sound, 0, 0, 0); //Load randomized sound file
+// 		}
+//  		if (gyroZ >= 80 && pitch_w <= 8 && prevPitch > pitch_w + 1) {
+//  			temp = pickSound("Snare Med"); sound = temp.c_str();
+//  			streamHandle = BASS_StreamCreateFile(FALSE, sound, 0, 0, 0); //Load randomized sound file
+//  		}
+// 		if (accelX >= 1.8 && accelX < 2.3) {
+// 			temp = pickSound("Snare Hard"); sound = temp.c_str();
+// 			streamHandle = BASS_StreamCreateFile(FALSE, sound, 0, 0, 0); //Load randomized sound file
+// 		}
+// 		if (accelX >= 2.3) {
+// 			temp = pickSound("Snare Hardest"); sound = temp.c_str();
+// 			streamHandle = BASS_StreamCreateFile(FALSE, sound, 0, 0, 0); //Load randomized sound file
+// 		}
+//  		if (yaw_w < 9 && gyroZ >= 80 && pitch_w > 9 && prevPitch > pitch_w + 1) {
+//  			temp = pickSound("Hi Hat/Closed Hi hat"); sound = temp.c_str();
+//  			streamHandle = BASS_StreamCreateFile(FALSE, sound, 0, 0, 0); //Load randomized sound file
+//  		}
+// 		if (GetAsyncKeyState(VK_SPACE) & 0x80000000) {
+// 			temp = pickSound("Kick"); sound = temp.c_str();
+// 			streamHandle = BASS_StreamCreateFile(FALSE, sound, 0, 0, 0); //Load randomized sound file
+// 			BASS_ChannelPlay(streamHandle, FALSE);
+// 		}
 		
+		if (gyroZ >= 80 && pitch_w < 6) { 
+			temp = pickSound("Snare Med").c_str(); sound = temp.c_str(); 
+			streamHandle = BASS_StreamCreateFile(FALSE, sound, 0, 0, 0);  
+			BASS_ChannelPlay(streamHandle, FALSE); 
+			std::cout << "JLSFHKSJDFHKJSDFHKJSDHFKJSDF" << '\n';
+			Sleep(1000 / 10);
+		}
 
-		/*std::cout << sound;
-		std::cout << '[' << roll_w << ']'
-			<< '[' << pitch_w << ']'
-			<< '[' << yaw_w << ']'
-			<< '[' << amtOfHits << ']';
-		std::cout << '[' << accelX << ']'
-			<< '[' << accelY << ']'
-			<< '[' << accelZ << ']'
-			<< '[' << accelMagnitude << ']';
+		std::cout << '[' << gyroZ << ']'
+			<< '[' << prevPitch << ']'
+			<< '[' << pitch_w << ']' << '\n';
+// 		if (whichArm == 0) {
+// 			std::thread(&DataCollector::playRight, this, streamHandle).detach();
+// 		}
+		
+// 		std::cout << '[' << accelX << ']'
+// 			<< '[' << accelY << ']'
+// 			<< '[' << accelZ << ']'
+// 			<< '[' << accelMagnitude << ']';
 			//std::cout << "Array Size: " << gyroValues.size() << ' ' << "Values: " << ' ';
 			/*for (int i = 0; i < gyroValues.size(); ++i)
 				std::cout << gyroValues[i] << ' ';*/
@@ -217,32 +204,28 @@ public:
 		/*  More accurate hit movement but still sometimes double hits.
 		 *  TODO: Check out gyroscope/accelerometer/EMG values when using wrist movements
 		 */
-		if(accelX >= 0.8/* && pitch_w <= 4*/){ 
-			amtOfHits += 1;
-			//std::cout << gyroValues.size() << '\n';
-			BASS_ChannelPlay(streamHandle, FALSE);
-		}
-		if (gyroValues.size() >= 60) { //Reset the array of gyroscope values once there are 60 values. TODO
+// 		if (gyroZ >= 80  && pitch_w <= 4 && prevPitch > pitch_w && whichArm == 1) {
+// 			amtOfHits += 1;
+// 			//std::cout << gyroValues.size() << '\n';
+// 			BASS_ChannelPlay(streamHandle, FALSE);
+// 			Sleep(1000 / 10);
+// 		}
+// 
+// 		if(gyroZ >= 80  && pitch_w <= 4  && prevPitch > pitch_w && whichArm == 0){ 
+// 			amtOfHits += 1;
+// 			//std::cout << gyroValues.size() << '\n';
+// 			BASS_ChannelPlay(streamHandle, FALSE);
+// 			Sleep(1000 / 10);
+// 		}
+// 		else if (gyroZ >= 80 && yaw_w > 3 && prevPitch > pitch_w) {
+// 			BASS_ChannelPlay(streamHandle, FALSE);
+// 			Sleep(1000 / 10);
+// 		}
+		//std::cout << yaw_w << '\n';
+		/*if (gyroValues.size() >= 60) { //Reset the array of gyroscope values once there are 60 values. TODO
 			gyroValues = {};
-		}
-
-		/*if (onArm) {
-			// Print out the lock state, the currently recognized pose, and which arm Myo is being worn on.
-
-			// Pose::toString() provides the human-readable name of a pose. We can also output a Pose directly to an
-			// output stream (e.g. std::cout << currentPose;). In this case we want to get the pose name's length so
-			// that we can fill the rest of the field with spaces below, so we obtain it as a string using toString().
-			std::string poseString = currentPose.toString();
-
-			std::cout << '[' << (isUnlocked ? "unlocked" : "locked  ") << ']'
-					  << '[' << (whichArm == myo::armLeft ? "L" : "R") << ']'
-					  << '[' << poseString << std::string(14 - poseString.size(), ' ') << ']';
-		} else {
-			// Print out a placeholder for the arm and pose when Myo doesn't currently know which arm it's on.
-			std::cout << '[' << std::string(8, ' ') << ']' << "[?]" << '[' << std::string(14, ' ') << ']';
 		}*/
 		prevPitch = pitch_w;
-		prevAccelX = accelX;
 		std::cout << std::flush;
     }
 
@@ -255,6 +238,7 @@ public:
 
     // These values are set by onOrientationData() and onPose() above.
     int roll_w, pitch_w, yaw_w;
+	float gyroX, gyroY, gyroZ;
     myo::Pose currentPose;
 };
 
