@@ -2,20 +2,30 @@
 *CSC355: Human Computer Interaction* project using two Myo Armbands to simulate air drumming. The program interprets gestures that the user makes and simulates drumming by importing sounds. The idea is to simulate air drumming by sitting down, putting on two Myo Armbands, and moving your arms and wrists like actual drumming to get a real-time drum session recording.
 
 ### Milestones:
+
 **Milestone #1**:
-- [x] Connect both Myo Armbands simultaneously
-- [x] Create new 'drum' gesture (using acceleration)
-- [x] Devise a way to make sounds (BASS library with .wav samples)
-- [x] Play overlapping drum sounds
+
+ - [x] Connect both Myo Armbands simultaneously
+ - [x] Create new 'drum' gesture (using acceleration)
+ - [x] Devise a way to make sounds (BASS library with .wav samples)
+ - [x] Play overlapping drum sounds
 
 **Milestone #2**:
-- [ ] Add different pallettes of sounds
-- [ ] Look into using moving arms around in a space for playing different drums
-- [ ] Remove flamming from detecting multiple points at acceleration value
 
+ - [x] Add different pallettes of sounds
+ - [x] Look into using moving arms around in a space for playing different drums
+ - [x] Remove flamming from detecting multiple points at acceleration value
+ 
 **Final Code**:
 
+ - [ ] Rework hit algorithm using angular velocity
+ - [ ] Narrow down the 3D space for hitting different drums
+ - [ ] Fully implement threads for each arm
+ - [ ] Ability to play a realistic sounding drum beat
+ - [ ] Clean up the code
+
 **Nice to Have's**:
+
 - [ ] Add ability to create and save recordings
 
 ### Useful Links:
