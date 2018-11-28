@@ -25,6 +25,7 @@ public:
     {
     }
 	int prevRoll = 0, prevPitch = 0, prevYaw = 0;
+	bool readyLeft = true; bool readyRight = true;
 	int device = -1; // Default Sound device
 	int freq = 44100; // Sample rate (Hz)
     // onUnpair() is called whenever the Myo is disconnected from Myo Connect by the user.
@@ -46,6 +47,60 @@ public:
 		gyroX = gyro.x();
 		gyroY = gyro.y();
 		gyroZ = gyro.z();
+
+		std::string temp = "";
+		const char* sound;
+
+		HSTREAM streamHandle; // Handle for open stream
+		BASS_Init(device, freq, 0, 0, NULL); //Initialize output device
+
+		/* Snare Drum
+		 *
+		 * gyroZ is the angular velocity on the Z axis for different pitches of the hit on the drum
+		 * TODO: get the hits to sound better
+		 */
+		if (gyroZ <= -110 && gyroZ > -150 && pitch_w <= 20 && prevPitch > pitch_w) {
+			temp = pickSound("Snare Soft").c_str(); sound = temp.c_str();
+			streamHandle = BASS_StreamCreateFile(FALSE, sound, 0, 0, 0);
+		}
+		if (gyroZ <= -150 && gyroZ > -190 && pitch_w <= 20 && prevPitch > pitch_w) {
+			temp = pickSound("Snare Med").c_str(); sound = temp.c_str();
+			streamHandle = BASS_StreamCreateFile(FALSE, sound, 0, 0, 0);
+		}
+		if (gyroZ <= -190 && gyroZ > -250 && pitch_w <= 20 && prevPitch > pitch_w) {
+			temp = pickSound("Snare Hard").c_str(); sound = temp.c_str();
+			streamHandle = BASS_StreamCreateFile(FALSE, sound, 0, 0, 0);
+		}
+		if (gyroZ <= -250 && pitch_w <= 20 && prevPitch > pitch_w) {
+			temp = pickSound("Snare Hardest").c_str(); sound = temp.c_str();
+			streamHandle = BASS_StreamCreateFile(FALSE, sound, 0, 0, 0);
+		}
+		/*END SNARE DRUM*/
+
+
+		/* Hi Hat
+		 *
+		 * gyroZ is the angular velocity on the Z axis for different pitches of the hit on the drum
+		 * TODO: get the hits to sound better
+		 */
+		if (gyroZ <= -80 && pitch_w >= 27 && yaw_w > 29 && yaw_w < 37 && prevPitch >= pitch_w) {
+			temp = pickSound("Hi Hat/Closed Hi hat").c_str(); sound = temp.c_str();
+			streamHandle = BASS_StreamCreateFile(FALSE, sound, 0, 0, 0);
+		}
+		/*END Hi Hat*/
+
+		std::cout << '[' << pitch_w << ']'
+			<< '[' << yaw_w << ']' << '\n';
+
+// 		std::cout << '[' << gyroZ << ']'
+// 			<< '[' << prevPitch << ']'
+// 			<< '[' << pitch_w << ']' << '\n';
+		if (whichArm == 0 && readyRight) {
+			std::thread(&DataCollector::playRight, this, streamHandle).detach();
+		}
+		if (whichArm == 1 && readyLeft) {
+			std::thread(&DataCollector::playLeft, this, streamHandle).detach();
+		}
 	}
     void onOrientationData(myo::Myo* myo, uint64_t timestamp, const myo::Quaternion<float>& quat)
     {
@@ -63,9 +118,9 @@ public:
                         1.0f - 2.0f * (quat.y() * quat.y() + quat.z() * quat.z())); //left and right
 
         // Convert the floating point angles in radians to a scale from 0 to 18.
-        roll_w = static_cast<int>((roll + (float)M_PI)/(M_PI * 2.0f) * 18);
-        pitch_w = static_cast<int>((pitch + (float)M_PI/2.0f)/M_PI * 18);
-        yaw_w = static_cast<int>((yaw + (float)M_PI)/(M_PI * 2.0f) * 18);
+        roll_w = static_cast<int>((roll + (float)M_PI)/(M_PI * 2.0f) * 50);
+        pitch_w = static_cast<int>((pitch + (float)M_PI/2.0f)/M_PI * 50);
+        yaw_w = static_cast<int>((yaw + (float)M_PI)/(M_PI * 2.0f) * 50);
     }
 
     // onPose() is called whenever the Myo detects that the person wearing it has changed their pose, for example,
@@ -127,12 +182,16 @@ public:
 	}
 
 	void playLeft(HSTREAM stream) {
+		readyLeft = false;
 		BASS_ChannelPlay(stream, FALSE);
-		std::this_thread::sleep_for(std::chrono::milliseconds(1000 / 10));
+		std::this_thread::sleep_for(std::chrono::milliseconds(1000 / 9));
+		readyLeft = true;
 	}
 	void playRight(HSTREAM stream) {
+		readyRight = false;
 		BASS_ChannelPlay(stream, FALSE);
-		std::this_thread::sleep_for(std::chrono::milliseconds(1000 / 10));
+		std::this_thread::sleep_for(std::chrono::milliseconds(1000 / 9));
+		readyRight = true;
 	}
 
     // There are other virtual functions in DeviceListener that we could override here, like onAccelerometerData().
@@ -144,11 +203,11 @@ public:
 		// Clear the current line
 		//std::cout << '\r';
 
-		std::string temp = "";
-		const char* sound;
-	
-		HSTREAM streamHandle; // Handle for open stream
-		BASS_Init(device, freq, 0, 0, NULL); //Initialize output device
+// 		std::string temp = "";
+// 		const char* sound;
+// 	
+// 		HSTREAM streamHandle; // Handle for open stream
+// 		BASS_Init(device, freq, 0, 0, NULL); //Initialize output device
 		
 // 		if (accelX >= 1.0 && accelX < 1.3) {
 // 			temp = pickSound("Snare Soft"); sound = temp.c_str();
@@ -176,19 +235,45 @@ public:
 // 			BASS_ChannelPlay(streamHandle, FALSE);
 // 		}
 		
-		if (gyroZ >= 80 && pitch_w < 6) { 
-			temp = pickSound("Snare Med").c_str(); sound = temp.c_str(); 
-			streamHandle = BASS_StreamCreateFile(FALSE, sound, 0, 0, 0);  
-			BASS_ChannelPlay(streamHandle, FALSE); 
-			std::cout << "JLSFHKSJDFHKJSDFHKJSDHFKJSDF" << '\n';
-			Sleep(1000 / 10);
-		}
 
-		std::cout << '[' << gyroZ << ']'
-			<< '[' << prevPitch << ']'
-			<< '[' << pitch_w << ']' << '\n';
-// 		if (whichArm == 0) {
+		/* Snare Drum
+		 *
+		 * gyroZ is the angular velocity on the Z axis for different pitches of the hit on the drum
+		 * TODO: get the hits to sound better
+		 */
+// 		if (gyroZ <= -110 && gyroZ > -150 && pitch_w <= 16 && prevPitch >= pitch_w) { 
+// 			temp = pickSound("Snare Soft").c_str(); sound = temp.c_str(); 
+// 			streamHandle = BASS_StreamCreateFile(FALSE, sound, 0, 0, 0);
+// 		}
+// 		if (gyroZ <= -150 && gyroZ > -190 && pitch_w <= 16 && prevPitch >= pitch_w ) {
+// 			temp = pickSound("Snare Med").c_str(); sound = temp.c_str();
+// 			streamHandle = BASS_StreamCreateFile(FALSE, sound, 0, 0, 0);
+// 		}
+// 		if (gyroZ <= -190 && gyroZ > -250 && pitch_w <= 16 && prevPitch >= pitch_w) {
+// 			temp = pickSound("Snare Hard").c_str(); sound = temp.c_str();
+// 			streamHandle = BASS_StreamCreateFile(FALSE, sound, 0, 0, 0);
+// 		}
+// 		if (gyroZ <= -250 && pitch_w <= 16 && prevPitch >= pitch_w) {
+// 			temp = pickSound("Snare Hardest").c_str(); sound = temp.c_str();
+// 			streamHandle = BASS_StreamCreateFile(FALSE, sound, 0, 0, 0);
+// 		}
+		/*END SNARE DRUM*/
+
+
+		/* Hi Hat
+		 *
+		 * gyroZ is the angular velocity on the Z axis for different pitches of the hit on the drum
+		 * TODO: get the hits to sound better
+		 */
+
+// 		std::cout << '[' << gyroZ << ']'
+// 			<< '[' << prevPitch << ']'
+// 			<< '[' << pitch_w << ']' << '\n';
+// 		if (whichArm == 0 && readyRight) {
 // 			std::thread(&DataCollector::playRight, this, streamHandle).detach();
+// 		}
+// 		if (whichArm == 1 && readyLeft) {
+// 			std::thread(&DataCollector::playLeft, this, streamHandle).detach();
 // 		}
 		
 // 		std::cout << '[' << accelX << ']'
