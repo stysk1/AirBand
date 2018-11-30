@@ -10,6 +10,8 @@
 #include <string>
 #include <algorithm>
 #include <conio.h>
+#include <windows.h>
+#include <cwchar>
 #include "bass.h"
 
 // The only file that needs to be included to use the Myo C++ SDK is myo.hpp.
@@ -26,6 +28,10 @@ public:
     }
 	int prevRoll = 0, prevPitch = 0, prevYaw = 0;
 	bool readyLeft = true; bool readyRight = true;
+	std::string temp = "";
+	const char* sound = "";
+	float center;
+	bool modify = true;
 	int device = -1; // Default Sound device
 	int freq = 44100; // Sample rate (Hz)
     // onUnpair() is called whenever the Myo is disconnected from Myo Connect by the user.
@@ -47,60 +53,55 @@ public:
 		gyroX = gyro.x();
 		gyroY = gyro.y();
 		gyroZ = gyro.z();
-
-		std::string temp = "";
-		const char* sound;
+		std::cout << '\r';
+		/*std::string temp = "";*/
+		/*const char* sound;*/
 
 		HSTREAM streamHandle; // Handle for open stream
 		BASS_Init(device, freq, 0, 0, NULL); //Initialize output device
 
-		/* Snare Drum
-		 *
-		 * gyroZ is the angular velocity on the Z axis for different pitches of the hit on the drum
-		 * TODO: get the hits to sound better
-		 */
-		if (gyroZ <= -110 && gyroZ > -150 && pitch_w <= 20 && prevPitch > pitch_w) {
-			temp = pickSound("Snare Soft").c_str(); sound = temp.c_str();
-			streamHandle = BASS_StreamCreateFile(FALSE, sound, 0, 0, 0);
+		if ((GetAsyncKeyState('E') & 0x80000000) || (roll_w >= 25 && abs(center - yaw_w) <= 4)) {
+			temp = pickSound("Snare Med"); sound = temp.c_str(); 
+			streamHandle = BASS_StreamCreateFile(FALSE, sound, 0, 0, 0); //Load randomized sound file
 		}
-		if (gyroZ <= -150 && gyroZ > -190 && pitch_w <= 20 && prevPitch > pitch_w) {
-			temp = pickSound("Snare Med").c_str(); sound = temp.c_str();
-			streamHandle = BASS_StreamCreateFile(FALSE, sound, 0, 0, 0);
+		if ((GetAsyncKeyState('W') & 0x80000000) || (roll_w >= 25 && yaw_w-center >= 5)) {
+			temp = pickSound("Hi Hat/Closed Hi hat"); sound = temp.c_str();
+			streamHandle = BASS_StreamCreateFile(FALSE, sound, 0, 0, 0); //Load randomized sound file
 		}
-		if (gyroZ <= -190 && gyroZ > -250 && pitch_w <= 20 && prevPitch > pitch_w) {
-			temp = pickSound("Snare Hard").c_str(); sound = temp.c_str();
-			streamHandle = BASS_StreamCreateFile(FALSE, sound, 0, 0, 0);
+		if ((GetAsyncKeyState('S') & 0x80000000)) {
+			temp = pickSound("Hi Hat/Open Hi hat"); sound = temp.c_str();
+			streamHandle = BASS_StreamCreateFile(FALSE, sound, 0, 0, 0); //Load randomized sound file
 		}
-		if (gyroZ <= -250 && pitch_w <= 20 && prevPitch > pitch_w) {
-			temp = pickSound("Snare Hardest").c_str(); sound = temp.c_str();
-			streamHandle = BASS_StreamCreateFile(FALSE, sound, 0, 0, 0);
+		if ((GetAsyncKeyState('Q') & 0x80000000) || (roll_w >= 25 && center-yaw_w >= 5)) {
+			temp = pickSound("Crash/Crash alt"); sound = temp.c_str();
+			streamHandle = BASS_StreamCreateFile(FALSE, sound, 0, 0, 0); //Load randomized sound file
 		}
-		/*END SNARE DRUM*/
+		if ((GetAsyncKeyState('R') & 0x80000000)) {
+			temp = pickSound("Rack Tom/Rack Tom Med"); sound = temp.c_str();
+			streamHandle = BASS_StreamCreateFile(FALSE, sound, 0, 0, 0); //Load randomized sound file
+		}
+		if ((GetAsyncKeyState('T') & 0x80000000)) {
+			temp = pickSound("Floor Tom/Floor Tom Med"); sound = temp.c_str();
+			streamHandle = BASS_StreamCreateFile(FALSE, sound, 0, 0, 0); //Load randomized sound file
+		}
+		if ((GetAsyncKeyState(VK_SPACE) & 0x80000000)) {
+			modify = true;
+		}
 
-
-		/* Hi Hat
-		 *
-		 * gyroZ is the angular velocity on the Z axis for different pitches of the hit on the drum
-		 * TODO: get the hits to sound better
-		 */
-		if (gyroZ <= -80 && pitch_w >= 27 && yaw_w > 29 && yaw_w < 37 && prevPitch >= pitch_w) {
-			temp = pickSound("Hi Hat/Closed Hi hat").c_str(); sound = temp.c_str();
-			streamHandle = BASS_StreamCreateFile(FALSE, sound, 0, 0, 0);
-		}
-		/*END Hi Hat*/
-
-		std::cout << '[' << pitch_w << ']'
-			<< '[' << yaw_w << ']' << '\n';
+		std::cout << "[PITCH: " << pitch_w << "]     "
+			<< "[ROLL: " << roll_w << "]     "
+			<< "[YAW: " << yaw_w << "]     "
+			<< "[CENTER: " << center << "]     " << '\n';
 
 // 		std::cout << '[' << gyroZ << ']'
 // 			<< '[' << prevPitch << ']'
 // 			<< '[' << pitch_w << ']' << '\n';
-		if (whichArm == 0 && readyRight) {
+		if (whichArm == 1 && readyRight && gyroX <= -500) {
 			std::thread(&DataCollector::playRight, this, streamHandle).detach();
 		}
-		if (whichArm == 1 && readyLeft) {
-			std::thread(&DataCollector::playLeft, this, streamHandle).detach();
-		}
+// 		if (whichArm == 1 && readyLeft && gyroY <= -180) {
+// 			std::thread(&DataCollector::playLeft, this, streamHandle).detach();
+// 		}
 	}
     void onOrientationData(myo::Myo* myo, uint64_t timestamp, const myo::Quaternion<float>& quat)
     {
@@ -116,11 +117,13 @@ public:
         float pitch = asin(max(-1.0f, min(1.0f, 2.0f * (quat.w() * quat.y() - quat.z() * quat.x())))); //up and down
         float yaw = atan2(2.0f * (quat.w() * quat.z() + quat.x() * quat.y()),
                         1.0f - 2.0f * (quat.y() * quat.y() + quat.z() * quat.z())); //left and right
-
+		
         // Convert the floating point angles in radians to a scale from 0 to 18.
         roll_w = static_cast<int>((roll + (float)M_PI)/(M_PI * 2.0f) * 50);
         pitch_w = static_cast<int>((pitch + (float)M_PI/2.0f)/M_PI * 50);
         yaw_w = static_cast<int>((yaw + (float)M_PI)/(M_PI * 2.0f) * 50);
+
+		if (modify) { center = yaw_w; modify = false; }
     }
 
     // onPose() is called whenever the Myo detects that the person wearing it has changed their pose, for example,
@@ -229,11 +232,7 @@ public:
 //  			temp = pickSound("Hi Hat/Closed Hi hat"); sound = temp.c_str();
 //  			streamHandle = BASS_StreamCreateFile(FALSE, sound, 0, 0, 0); //Load randomized sound file
 //  		}
-// 		if (GetAsyncKeyState(VK_SPACE) & 0x80000000) {
-// 			temp = pickSound("Kick"); sound = temp.c_str();
-// 			streamHandle = BASS_StreamCreateFile(FALSE, sound, 0, 0, 0); //Load randomized sound file
-// 			BASS_ChannelPlay(streamHandle, FALSE);
-// 		}
+
 		
 
 		/* Snare Drum
@@ -334,6 +333,16 @@ int main(int argc, char** argv)
 
     // First, we create a Hub with our application identifier. Be sure not to use the com.example namespace when
     // publishing your application. The Hub provides access to one or more Myos.
+		CONSOLE_FONT_INFOEX cfi;
+		cfi.cbSize = sizeof(cfi);
+		cfi.nFont = 0;
+		cfi.dwFontSize.X = 0;                   // Width of each character in the font
+		cfi.dwFontSize.Y = 30;                  // Height
+		cfi.FontFamily = FF_DONTCARE;
+		cfi.FontWeight = FW_NORMAL;
+		std::wcscpy(cfi.FaceName, L"Consolas"); // Choose your font
+		SetCurrentConsoleFontEx(GetStdHandle(STD_OUTPUT_HANDLE), FALSE, &cfi);
+
     myo::Hub hub("com.example.hello-myo");
 
     std::cout << "Attempting to find a Myo..." << std::endl;
@@ -363,7 +372,7 @@ int main(int argc, char** argv)
     while (1) {
         // In each iteration of our main loop, we run the Myo event loop for a set number of milliseconds.
         // In this case, we wish to update our display 60 times a second, so we run for 1000/60 milliseconds.
-		hub.run(1000 / 20);
+		hub.run(1000 / 100);
         // After processing events, we call the print() member function we defined above to print out the values we've
         // obtained from any events that have occurred.
 		collector.print();
