@@ -17,8 +17,9 @@
 All the files are placed in a single folder. The main.cpp file contains the myo.hpp which is included to use the Myo C++ SDK. Similarly, the main.cpp file includes the bass.h which is used to load the drum sounds and play them through different channels.
 
 ### To Compile and Run:
-**Windows**
-Find the MyoDrum.exe within the files of the projects. Open the .exe file to run the program. Once the file is opened, click on build to run the project. Disconnect each armband first. Then follow the procedure for the first armband(used as the right hand):- connect, disconnect, and re-connect. A ìRight hand connectedî string will output in the terminal. After that, follow the same procedure for the second armband(used in the left hand). Once this is satisfied, you can start moving the myo armband and start playing the virtual drums.
+**Windows**:
+
+Find the MyoDrum.exe within the files of the projects. Open the .exe file to run the program. Once the file is opened, click on build to run the project. Disconnect each armband first. Then follow the procedure for the first armband(used as the right hand):- connect, disconnect, and re-connect. A ‚ÄúRight hand connected‚Äù string will output in the terminal. After that, follow the same procedure for the second armband(used in the left hand). Once this is satisfied, you can start moving the myo armband and start playing the virtual drums.
 * Drums Sounds
 	* Snare - Middle
 	* Hi-Hat - Left
@@ -26,7 +27,8 @@ Find the MyoDrum.exe within the files of the projects. Open the .exe file to run
 	* Ride - Slightly right of the Crash
 
 **Mac**:
-When user loads Xcode program, open the AirBand.xcodeproj file which contains all the files for the myo project. Once the file is opened, click on build to run the project. Disconnect each armband first. Then follow the procedure for the first armband(used as the right hand):- connect, disconnect, and re-connect. A ìRight hand connectedî string will output in the terminal. After that, follow the same procedure for the second armband(used in the left hand). Once this is satisfied, you can start moving the myo armband and start playing the virtual drums.
+
+When user loads Xcode program, open the AirBand.xcodeproj file which contains all the files for the myo project. Once the file is opened, click on build to run the project. Disconnect each armband first. Then follow the procedure for the first armband(used as the right hand):- connect, disconnect, and re-connect. A ‚ÄúRight hand connected‚Äù string will output in the terminal. After that, follow the same procedure for the second armband(used in the left hand). Once this is satisfied, you can start moving the myo armband and start playing the virtual drums.
 * Drums Sounds
 	* Snare - Middle
 	* Hi-Hat - Left
